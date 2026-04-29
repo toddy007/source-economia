@@ -1,0 +1,26 @@
+{
+  "name": "discord-bot-base",
+  "version": "1.0.0",
+  "description": "A base to create Discord bots with Typescript",
+  "main": "src/index.ts",
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "tiny-glob": "^0.2.9",
+    "tsx": "^4.7.0",
+    "twin-db": "^1.1.2",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "start": "tsx --env-file=.env src/index.ts"
+  },
+  "author": {
+    "name": "Jaelson Kaciel",
+    "url": "https://github.com/toddy007"
+  },
+  "keywords": [
+    "base",
+    "discord",
+    "bot"
+  ],
+  "license": "MIT"
+}
