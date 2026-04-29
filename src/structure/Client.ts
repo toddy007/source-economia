@@ -2,9 +2,11 @@ import { Client as DiscordClient, Collection } from 'discord.js';
 import globSync from 'tiny-glob';
 import { Command } from '../types/global';
 import { Config } from '../client/Config';
+import TwinDB from 'twin-db';
 
 export class Client<R extends boolean> extends DiscordClient<R> {
     public commands = new Collection<string, Command>();
+    public db = new TwinDB();
 
     public config = Config;
 
