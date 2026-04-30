@@ -13,7 +13,7 @@ export default class DailyCommand extends Command {
     public async execute({ client, message }: CommandPayload) {
         const cooldown = (await client.db.get(`users.${message.author.id}.cooldowns.daily`) ?? 0) as number;
         if (cooldown > Date.now()) {
-            const remaining = relativeTime(Date.now() - cooldown);
+            const remaining = relativeTime(cooldown - Date.now(), { compact: true, removeMs: true, includeMsInSeconds: true });
             return message.reply('⏱️・Você já coletou seu daily, espere: `' + remaining + '`.');
         }
 
