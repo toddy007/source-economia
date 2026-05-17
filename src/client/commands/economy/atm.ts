@@ -17,9 +17,9 @@ export default class AtmCommand extends Command {
     public async execute({ client, context }: CommandPayload) {
         const author = this.getAuthor(context);
         
-        const amount = await client.db.get(`users.${author.id}.amount`) ?? 0;
-        const bank = await client.db.get(`users.${author.id}.bank`) ?? 0;
+        const amount = client.db.get(`users.${author.id}.amount`) ?? 0;
+        const bank = client.db.get(`users.${author.id}.bank`) ?? 0;
 
-        this.reply(context, '[💵] Saldo\n🪙・Carteira**' + amount + '** moedas.\n🏦・Banco**' + bank + '** moedas.');
+        context.reply('[💵] Saldo\n🪙・Carteira**' + amount + '** moedas.\n🏦・Banco**' + bank + '** moedas.');
     }
 }
