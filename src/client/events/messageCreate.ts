@@ -23,7 +23,7 @@ export default class MessageCreateEvent extends Event {
             const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
             if (!command) return;
 
-            return command.execute<Message<true>>({
+            return command.execute({
                 client,
                 context: message,
                 args,
