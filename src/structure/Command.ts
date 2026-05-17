@@ -18,5 +18,5 @@ export abstract class Command extends NoInitializer {
         this.slashCommandData = slashCommandData;
     };
 
-    public execute(payload: CommandPayload) {};
+    public abstract execute(payload: CommandPayload): unknown;
 }

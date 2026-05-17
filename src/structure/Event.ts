@@ -1,7 +1,9 @@
-export class Event {
+import { Events } from "discord.js";
+
+export abstract class Event {
     public constructor(
-        public name: string,
+        public name: Events,
     ) {};
 
-    public execute(payload: unknown) {};
+    public abstract execute(payload: unknown): unknown;
 }
