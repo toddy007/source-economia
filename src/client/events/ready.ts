@@ -7,5 +7,7 @@ export default class ReadyEvent extends Event {
 
     public execute() {
         console.log(client.user.username + ' is ready');
+
+        client.loadSlashCmds();
     }
 }

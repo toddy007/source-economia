@@ -3,6 +3,7 @@ import globSync from 'tiny-glob';
 import { Command } from '../types/global';
 import { Config } from '../client/Config';
 import TwinDB from 'twin-db';
+import { client } from '..';
 
 export class Client<R extends boolean> extends DiscordClient<R> {
     public commands = new Collection<string, Command>();
@@ -25,6 +26,15 @@ export class Client<R extends boolean> extends DiscordClient<R> {
             const cmd = new CommandClass();
 
             this.commands.set(cmd.name, cmd);
+        }
+    }
+
+    public loadSlashCmds() {
+        const allCommands = this.commands.filter(cmd => cmd.slashCommandData);
+
+        for (const command of allCommands.values()) {
+            if (!command.slashCommandData) continue;
+            this.application!.commands.create(command.slashCommandData);
         }
     }
 
