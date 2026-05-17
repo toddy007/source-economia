@@ -27,7 +27,7 @@ export default class CoinflipCommand extends Command {
 
     public async execute({ client, context, args }: CommandPayload) {
         const author = this.getAuthor(context);
-        const user = this.getUser(context, { name: 'user', required: true }) ?? (await client.users.fetch(args![0]).catch(() => null));
+        const user = this.getUser(context, { name: 'user', required: true }) ?? client.users.cache.get(args![0]);
         const amountArg = this.getString(context, { name: 'quantia', required: true }) ?? args![1];
 
         if (!user) 
@@ -39,8 +39,8 @@ export default class CoinflipCommand extends Command {
         if (!amountArg) 
             return this.reply(context, { content: '❌・Especifique um valor para apostar.', flags: MessageFlags.Ephemeral });
 
-        const authorAmount = await client.db.get(`users.${author.id}.amount`) as number;
-        const userAmount = await client.db.get(`users.${user.id}.amount`) as number;
+        const authorAmount = client.db.get(`users.${author.id}.amount`) as number;
+        const userAmount = client.db.get(`users.${user.id}.amount`) as number;
         const amount = amountArg.toLowerCase() === 'all' ? authorAmount : unabbreviate(amountArg);
 
         if (amount <= 0) 
@@ -63,9 +63,9 @@ export default class CoinflipCommand extends Command {
             loser = user;
         }
 
-        await client.db.sub(`users.${loser.id}.amount`, amount);
-        await client.db.sum(`users.${winner.id}.amount`, amount);
+        client.db.sub(`users.${loser.id}.amount`, amount);
+        client.db.sum(`users.${winner.id}.amount`, amount);
 
-        this.reply(context, `✅・O vencedor foi <@${winner.id}> com resultado ${flipResult} e o perdedor ( <@${loser.id}> ) pagou **${amount}** moedas.`); 
+        context.reply(`✅・O vencedor foi <@${winner.id}> com resultado ${flipResult} e o perdedor ( <@${loser.id}> ) pagou **${amount}** moedas.`); 
     }
 }
