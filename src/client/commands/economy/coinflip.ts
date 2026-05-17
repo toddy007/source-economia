@@ -43,7 +43,7 @@ export default class CoinflipCommand extends Command {
         const userAmount = client.db.get(`users.${user.id}.amount`) as number;
         const amount = amountArg.toLowerCase() === 'all' ? authorAmount : unabbreviate(amountArg);
 
-        if (amount <= 0) 
+        if (isNaN(amount) || amount <= 0) 
             return this.reply(context, { content: '❌・O valor a ser apostado deve ser um número positivo.', flags: MessageFlags.Ephemeral });
         if (amount > authorAmount) 
             return this.reply(context, { content: '❌・Você não tem moedas suficientes para apostar.', flags: MessageFlags.Ephemeral });
@@ -66,6 +66,6 @@ export default class CoinflipCommand extends Command {
         client.db.sub(`users.${loser.id}.amount`, amount);
         client.db.sum(`users.${winner.id}.amount`, amount);
 
-        context.reply(`✅・O vencedor foi <@${winner.id}> com resultado ${flipResult} e o perdedor ( <@${loser.id}> ) pagou **${amount}** moedas.`); 
+        context.reply(`✅・O vencedor foi <@${winner.id}> com resultado \`${flipResult}\` e o perdedor ( <@${loser.id}> ) pagou **${amount}** moedas.`); 
     }
 }

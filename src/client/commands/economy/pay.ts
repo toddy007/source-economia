@@ -42,7 +42,7 @@ export default class PayCommand extends Command {
         const userAmount = client.db.get(`users.${author.id}.amount`) as number;
         const amount = amountArg.toLowerCase() === 'all' ? userAmount : unabbreviate(amountArg);
 
-        if (amount <= 0) 
+        if (isNaN(amount) || amount <= 0) 
             return this.reply(context, { content: '❌・O valor a ser pago deve ser um número positivo.', flags: MessageFlags.Ephemeral });
         if (amount > userAmount) 
             return this.reply(context, { content: '❌・Você não tem moedas suficientes para pagar.', flags: MessageFlags.Ephemeral });

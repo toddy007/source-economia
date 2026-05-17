@@ -33,8 +33,8 @@ export default class SacCommand extends Command {
         if (amount > userAmount) 
             return this.reply(context, { content: '❌・Você não tem moedas suficientes para sacar.', flags: MessageFlags.Ephemeral });
 
-        client.db.sub(`users.${author.id}.amount`, amount);
-        client.db.sum(`users.${author.id}.bank`, amount);
+        client.db.sum(`users.${author.id}.amount`, amount);
+        client.db.sub(`users.${author.id}.bank`, amount);
         
         context.reply('✅・Você sacou **' + amount + '** moedas do banco.');
 
