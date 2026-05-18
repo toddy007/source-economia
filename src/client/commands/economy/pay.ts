@@ -1,7 +1,8 @@
-import { MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { MessageFlags, SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Message, Snowflake } from 'discord.js';
 import { Command } from '../../../structure/Command';
 import { CommandPayload } from '../../../types/global';
 import { unabbreviate } from 'util-stunks';
+import { JsxFlags } from 'typescript';
 
 export default class PayCommand extends Command {
     public constructor() {
@@ -50,6 +51,74 @@ export default class PayCommand extends Command {
         client.db.sub(`users.${author.id}.amount`, amount);
         client.db.sum(`users.${user.id}.amount`, amount);
 
-        context.reply(`✅・Você pagou **${amount}** moedas para <@${user.id}>.`); // colocar botao 
+        const button = new ButtonBuilder()
+            .setCustomId('confirm')
+            .setLabel('[0/0] Confirmar')
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('✅')
+
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+
+        /*let msg = await context.reply({ content: `⚠️・Os dois precisam confirmar o pagamento.`, components: [row] }); 
+        if (this.isInteractionContext(context)) 
+            msg = await context.fetchReply() as unknown as Message<true>;
+        if (!(msg instanceof Message)) return;*/
+
+        const msg = await this.reply(context, { content: `⚠️・Os dois precisam confirmar o pagamento.`, components: [row] }) as Message<true>;
+
+        const accepted: Snowflake[] = [];
+
+        const collector = msg.createMessageComponentCollector({ filter: i => i.user.id === author.id || i.user.id === user.id, time: 90000 });
+
+        collector.on('collect', (interaction) => {
+            if (accepted.includes(interaction.user.id) && accepted.length < 2) {
+                const index = accepted.indexOf(interaction.user.id);
+                accepted.splice(index, 1);
+                interaction.reply({ content: '✅・Cancelado.', flags: MessageFlags.Ephemeral });
+
+                editButton(button, accepted);
+                row.setComponents(button);
+                msg.edit({ components: [row] });
+            } else if (!accepted.includes(interaction.user.id)) {
+                accepted.push(interaction.user.id);
+                interaction.reply({ content: '✅・Confirmado.', flags: MessageFlags.Ephemeral });
+
+                editButton(button, accepted);
+                row.setComponents(button);
+                msg.edit({ components: [row] });
+            }
+
+            if (accepted.length === 2) {
+                const actualAmount = client.db.get(`users.${author.id}.amount`) as number;
+                if (actualAmount < amount) {
+                    msg.reply('❌・O pagamento falhou, o usuario não tem moedas suficientes.');
+                    return collector.stop('cancelled');
+                }
+
+                client.db.sub(`users.${author.id}.amount`, amount);
+                client.db.sum(`users.${user.id}.amount`, amount);
+
+                msg.reply(`✅・Pagamento de ${amount} moedas para ${user} confirmado!`);
+                collector.stop('success');
+            }
+        });
+
+        collector.on('end', (_, reason) => {
+            if (reason === 'cancelled')
+                return msg.edit({ content: '❌・Pagamento cancelado devido a falta de confirmações.', components: [] });
+            
+            if (reason === 'success') {
+                button.setStyle(ButtonStyle.Success).setDisabled(true);
+                row.setComponents(button);
+                return msg.edit({ components: [row] });
+            }
+
+            return msg.edit({ content: '⌛・Tempo esgotado.', components: [] });
+        });
     }
+}
+
+function editButton(button: ButtonBuilder, accepted: Snowflake[]) {
+    const label = `[${accepted.length}/2] Confirmar`;
+    button.setLabel(label);
 }
