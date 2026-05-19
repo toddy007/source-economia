@@ -48,9 +48,6 @@ export default class PayCommand extends Command {
         if (amount > userAmount) 
             return this.reply(context, { content: '❌・Você não tem moedas suficientes para pagar.', flags: MessageFlags.Ephemeral });
 
-        client.db.sub(`users.${author.id}.amount`, amount);
-        client.db.sum(`users.${user.id}.amount`, amount);
-
         const button = new ButtonBuilder()
             .setCustomId('confirm')
             .setLabel('[0/0] Confirmar')
@@ -59,12 +56,7 @@ export default class PayCommand extends Command {
 
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
 
-        /*let msg = await context.reply({ content: `⚠️・Os dois precisam confirmar o pagamento.`, components: [row] }); 
-        if (this.isInteractionContext(context)) 
-            msg = await context.fetchReply() as unknown as Message<true>;
-        if (!(msg instanceof Message)) return;*/
-
-        const msg = await this.reply(context, { content: `⚠️・Os dois precisam confirmar o pagamento.`, components: [row] }) as Message<true>;
+        const msg = await this.reply(context, { content: `⚠️・Os dois precisam confirmar o pagamento.`, components: [row], withResponse: true }) as Message<true>;
 
         const accepted: Snowflake[] = [];
 
