@@ -2,7 +2,7 @@ import { MessageFlags, SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRo
 import { Command } from '../../../structure/Command';
 import { CommandPayload } from '../../../types/global';
 import { unabbreviate } from 'util-stunks';
-import { JsxFlags } from 'typescript';
+import { editButton } from '../../../utils/editButton';
 
 export default class PayCommand extends Command {
     public constructor() {
@@ -50,7 +50,7 @@ export default class PayCommand extends Command {
 
         const button = new ButtonBuilder()
             .setCustomId('confirm')
-            .setLabel('[0/0] Confirmar')
+            .setLabel('[0/2] Confirmar')
             .setStyle(ButtonStyle.Secondary)
             .setEmoji('✅')
 
@@ -108,9 +108,4 @@ export default class PayCommand extends Command {
             return msg.edit({ content: '⌛・Tempo esgotado.', components: [] });
         });
     }
-}
-
-function editButton(button: ButtonBuilder, accepted: Snowflake[]) {
-    const label = `[${accepted.length}/2] Confirmar`;
-    button.setLabel(label);
 }
