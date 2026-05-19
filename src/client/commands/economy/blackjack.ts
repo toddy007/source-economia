@@ -89,6 +89,8 @@ export default class BlackjackCommand extends Command {
         const collector = message.createMessageComponentCollector({ filter: i => i.user.id === author.id });
 
         collector.on('collect', async (interaction) => {
+            interaction.deferUpdate();
+            
             if (interaction.customId === 'hit') {
                 const newCard = gerarCartas();
                 playerHand.push(newCard);
