@@ -8,18 +8,23 @@ export default class AtmCommand extends Command {
             name: 'atm',
             aliases: ['bal', 'balance'],
             slashCommandData: 
-                new SlashCommandBuilder()
+                (new SlashCommandBuilder()
                     .setName('saldo')
                     .setDescription('Mostra o saldo da carteira e do banco')
+                    .addUserOption(option =>
+                        option
+                            .setName('user')
+                            .setDescription('Um usuario para ver o saldo'))) as unknown as SlashCommandBuilder
         });
     }
 
-    public async execute({ client, context }: CommandPayload) {
+    public async execute({ client, context, args }: CommandPayload) {
         const author = this.getAuthor(context);
+        const user = this.getUser(context, { name: 'user' }) || client.users.cache.get(args ? args[0] : '') || author;
         
-        const amount = client.db.get(`users.${author.id}.amount`) ?? 0;
-        const bank = client.db.get(`users.${author.id}.bank`) ?? 0;
+        const amount = client.db.get(`users.${user.id}.amount`) ?? 0;
+        const bank = client.db.get(`users.${user.id}.bank`) ?? 0;
 
-        context.reply('[💵] Saldo\n🪙・Carteira**' + amount + '** moedas.\n🏦・Banco**' + bank + '** moedas.');
+        context.reply('[💵] Saldo de ' + user + '\n🪙・Carteira**' + amount + '** moedas.\n🏦・Banco**' + bank + '** moedas.');
     }
 }
