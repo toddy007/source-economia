@@ -27,7 +27,7 @@ export default class DepCommand extends Command {
         if (!amountArg) 
             return this.reply(context, { content: '❌・Especifique um valor para depositar.', flags: MessageFlags.Ephemeral });
         
-        const userAmount = client.db.get(`users.${author.id}.amount`) as number;
+        const userAmount = (client.db.get(`users.${author.id}.amount`) ?? 0) as number;
         const amount = amountArg.toLowerCase() === 'all' ? userAmount : unabbreviate(amountArg);
         if (isNaN(amount) || amount <= 0) 
             return this.reply(context, { content: '❌・Valor inválido para depositar.', flags: MessageFlags.Ephemeral });

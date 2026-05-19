@@ -40,8 +40,8 @@ export default class CoinflipCommand extends Command {
         if (!amountArg) 
             return this.reply(context, { content: '❌・Especifique um valor para apostar.', flags: MessageFlags.Ephemeral });
 
-        const authorAmount = client.db.get(`users.${author.id}.amount`) as number;
-        const userAmount = client.db.get(`users.${user.id}.amount`) as number;
+        const authorAmount = (client.db.get(`users.${author.id}.amount`) ?? 0) as number;
+        const userAmount = (client.db.get(`users.${user.id}.amount`) ?? 0) as number;
         const amount = amountArg.toLowerCase() === 'all' ? authorAmount : unabbreviate(amountArg);
 
         if (isNaN(amount) || amount <= 0) 
@@ -84,8 +84,8 @@ export default class CoinflipCommand extends Command {
             }
 
             if (accepted.length === 2) {
-                const authorActualAmount = client.db.get(`users.${author.id}.amount`) as number;
-                const userActualAmount = client.db.get(`users.${user.id}.amount`) as number;
+                const authorActualAmount = (client.db.get(`users.${author.id}.amount`) ?? 0) as number;
+                const userActualAmount = (client.db.get(`users.${user.id}.amount`) ?? 0) as number;
                 if (authorActualAmount < amount || userActualAmount < amount) {
                     msg.reply('❌・A aposta falhou, um dos usuários não tem moedas suficientes.');
                     return collector.stop('cancelled');

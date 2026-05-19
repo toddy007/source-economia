@@ -26,7 +26,7 @@ export default class SacCommand extends Command {
         if (!amountArg) 
             return this.reply(context, { content: '❌・Especifique um valor para sacar.', flags: MessageFlags.Ephemeral });
         
-        const userAmount = client.db.get(`users.${author.id}.bank`) as number;
+        const userAmount = (client.db.get(`users.${author.id}.bank`) ?? 0) as number;
         const amount = amountArg.toLowerCase() === 'all' ? userAmount : unabbreviate(amountArg);
         if (isNaN(amount) || amount <= 0) 
             return this.reply(context, { content: '❌・Valor inválido para sacar.', flags: MessageFlags.Ephemeral });

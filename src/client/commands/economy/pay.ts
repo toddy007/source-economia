@@ -40,7 +40,7 @@ export default class PayCommand extends Command {
         if (!amountArg) 
             return this.reply(context, { content: '❌・Especifique um valor para pagar.', flags: MessageFlags.Ephemeral });
 
-        const userAmount = client.db.get(`users.${author.id}.amount`) as number;
+        const userAmount = (client.db.get(`users.${author.id}.amount`) ?? 0) as number;
         const amount = amountArg.toLowerCase() === 'all' ? userAmount : unabbreviate(amountArg);
 
         if (isNaN(amount) || amount <= 0) 
@@ -81,7 +81,7 @@ export default class PayCommand extends Command {
             }
 
             if (accepted.length === 2) {
-                const actualAmount = client.db.get(`users.${author.id}.amount`) as number;
+                const actualAmount = (client.db.get(`users.${author.id}.amount`) ?? 0) as number;
                 if (actualAmount < amount) {
                     msg.reply('❌・O pagamento falhou, o usuario não tem moedas suficientes.');
                     return collector.stop('cancelled');
