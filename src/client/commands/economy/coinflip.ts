@@ -1,7 +1,8 @@
 import { Command } from '../../../structure/Command';
 import { CommandPayload } from '../../../types/global';
 import { unabbreviate } from 'util-stunks';
-import { SlashCommandBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, MessageFlags, ButtonBuilder, ButtonStyle, ActionRowBuilder, Snowflake, Message } from 'discord.js';
+import { editButton } from '../../../utils/editButton';
 
 export default class CoinflipCommand extends Command {
     public constructor() {
@@ -50,22 +51,78 @@ export default class CoinflipCommand extends Command {
         if (amount > userAmount)
             return this.reply(context, { content: '❌・O usuário mencionado não tem moedas suficientes para apostar.', flags: MessageFlags.Ephemeral });
 
-        const results = ['cara', 'coroa'];
-        const flipResult = results[Math.floor(Math.random() * 2)];
+        const button = new ButtonBuilder()
+            .setCustomId('confirm')
+            .setLabel('[0/2] Confirmar')
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('✅')
+
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+
+        const msg = await this.reply(context, { content: `⚠️・Os dois precisam confirmar a aposta.`, components: [row], withResponse: true }) as Message<true>;
+
+        const accepted: Snowflake[] = [];
+
+        const collector = msg.createMessageComponentCollector({ filter: i => i.user.id === author.id || i.user.id === user.id, time: 90000 });
+
+        collector.on('collect', (interaction) => {
+            if (accepted.includes(interaction.user.id) && accepted.length < 2) {
+                const index = accepted.indexOf(interaction.user.id);
+                accepted.splice(index, 1);
+                interaction.reply({ content: '✅・Cancelado.', flags: MessageFlags.Ephemeral });
+
+                editButton(button, accepted);
+                row.setComponents(button);
+                msg.edit({ components: [row] });
+            } else if (!accepted.includes(interaction.user.id)) {
+                accepted.push(interaction.user.id);
+                interaction.reply({ content: '✅・Confirmado.', flags: MessageFlags.Ephemeral });
+
+                editButton(button, accepted);
+                row.setComponents(button);
+                msg.edit({ components: [row] });
+            }
+
+            if (accepted.length === 2) {
+                const authorActualAmount = client.db.get(`users.${author.id}.amount`) as number;
+                const userActualAmount = client.db.get(`users.${user.id}.amount`) as number;
+                if (authorActualAmount < amount || userActualAmount < amount) {
+                    msg.reply('❌・A aposta falhou, um dos usuários não tem moedas suficientes.');
+                    return collector.stop('cancelled');
+                }
+
+                const results = ['cara', 'coroa'];
+                const flipResult = results[Math.floor(Math.random() * 2)];
         
-        let winner;
-        let loser;
-        if (flipResult === 'cara') {
-            winner = user;
-            loser = author;
-        } else {
-            winner = author;
-            loser = user;
-        }
+                let winner;
+                let loser;
+                if (flipResult === 'cara') {
+                    winner = user;
+                    loser = author;
+                } else {
+                    winner = author;
+                    loser = user;
+                }
 
-        client.db.sub(`users.${loser.id}.amount`, amount);
-        client.db.sum(`users.${winner.id}.amount`, amount);
+                client.db.sub(`users.${loser.id}.amount`, amount);
+                client.db.sum(`users.${winner.id}.amount`, amount);
+                
+                msg.reply(`✅・O usuario ${winner} ganhou a aposta de **${amount}** moedas! O resultado foi **${flipResult}**.`);
+                collector.stop('success');
+            }
+        });
 
-        context.reply(`✅・O vencedor foi <@${winner.id}> com resultado \`${flipResult}\` e o perdedor ( <@${loser.id}> ) pagou **${amount}** moedas.`); 
+        collector.on('end', (_, reason) => {
+            if (reason === 'cancelled')
+                return msg.edit({ content: '❌・Aposta cancelada devido a falta de confirmações.', components: [] });
+            
+            if (reason === 'success') {
+                button.setStyle(ButtonStyle.Success).setDisabled(true);
+                row.setComponents(button);
+                return msg.edit({ components: [row] });
+            }
+
+            return msg.edit({ content: '⌛・Tempo esgotado.', components: [] });
+        });
     }
 }
